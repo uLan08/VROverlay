@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using System.Diagnostics;
 
 public class ControllerScript : MonoBehaviour
 {
@@ -32,7 +33,6 @@ public class ControllerScript : MonoBehaviour
     Rect noButtonRect;
     float x;
     float y;
-
 
     void Awake()
     {
@@ -68,22 +68,26 @@ public class ControllerScript : MonoBehaviour
         device = SteamVR_Controller.Input((int)trackedObj.index);
         if (device.GetPressUp(SteamVR_Controller.ButtonMask.System))
         {
-            if (!overlay.gameObject.activeSelf)
+            Process[] processes = Process.GetProcessesByName("revivelauncher");
+            if(processes.Length == 0)
             {
-                toggleCursor();
-                overlay.gameObject.SetActive(true);
-                overlay.transform.position = new Vector3(HMD.gameObject.transform.position.x, 1.5f, HMD.gameObject.transform.position.z) + (new Vector3(HMD.transform.forward.x, 0f, HMD.transform.forward.z) *3f);
-                overlay.transform.rotation = Quaternion.Euler(0f, HMD.transform.eulerAngles.y, 0f);
-                //RenderSettings.skybox = skyboxMat;
-                hasOverlay = true;
+                if (!overlay.gameObject.activeSelf)
+                {
+                    toggleCursor();
+                    overlay.gameObject.SetActive(true);
+                    overlay.transform.position = new Vector3(HMD.gameObject.transform.position.x, 1.5f, HMD.gameObject.transform.position.z) + (new Vector3(HMD.transform.forward.x, 0f, HMD.transform.forward.z) * 3f);
+                    overlay.transform.rotation = Quaternion.Euler(0f, HMD.transform.eulerAngles.y, 0f);
+                    //RenderSettings.skybox = skyboxMat;
+                    hasOverlay = true;
 
-            }
-            else
-            {
-                toggleCursor();
-                overlay.gameObject.SetActive(false);
-                hasOverlay = false;
+                }
+                else
+                {
+                    toggleCursor();
+                    overlay.gameObject.SetActive(false);
+                    hasOverlay = false;
 
+                }
             }
         }
         if (device.GetTouchDown(SteamVR_Controller.ButtonMask.Trigger))
@@ -92,16 +96,24 @@ public class ControllerScript : MonoBehaviour
             {
                 toggleCursor();
                 yesButton.GetComponent<Button>().image.color = Color.green;
-                Debug.Log("pressed yes");
+                UnityEngine.Debug.Log("pressed yes");
                 overlay.gameObject.SetActive(false);
-              //  System.Diagnostics.Process.Start("C:/Users/Infinite VR Prime/Documents/REVIVE/revivelauncher.exe");
+
+
+                Process[] processes = Process.GetProcessesByName("revivelauncher");
+                for (int i = 0; i < processes.Length; i++)
+                {
+                    UnityEngine.Debug.Log("nag sulod dri \n");
+                    processes[i].Kill();
+                }
+                Process reviveLauncherProc = Process.Start("C:/Users/Infinite VR Prime/Documents/REVIVE/revivelauncher.exe");
 
             }
             else if (inNo)
             {
                 toggleCursor();
                 noButton.GetComponent<Button>().image.color = pressedColor;
-                Debug.Log("pressed no");
+                UnityEngine.Debug.Log("pressed no");
                 overlay.gameObject.SetActive(false);
             }
         }
@@ -159,7 +171,11 @@ public class ControllerScript : MonoBehaviour
 
     public void toggleCursor()
     {
-        otherController.GetComponent<ControllerScript>().cursor.GetComponent<Image>().enabled = !otherController.GetComponent<ControllerScript>().cursor.GetComponent<Image>().enabled;
-        otherController.GetComponent<ControllerScript>().enabled = !otherController.GetComponent<ControllerScript>().enabled;
+        UnityEngine.Debug.Log(otherController.activeSelf);
+        if (otherController.activeSelf)
+        {
+            otherController.GetComponent<ControllerScript>().cursor.GetComponent<Image>().enabled = !otherController.GetComponent<ControllerScript>().cursor.GetComponent<Image>().enabled;
+            otherController.GetComponent<ControllerScript>().enabled = !otherController.GetComponent<ControllerScript>().enabled;
+        }
     }
 }
