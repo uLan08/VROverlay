@@ -11,6 +11,7 @@ public class ControllerScript : MonoBehaviour
 
     public Overlay overlay;
     public GameObject canvas;
+    public Overlay loadingSceen;
     public Sprite cursorSprite;
     public GameObject HMD;
     public GameObject otherController;
@@ -74,9 +75,7 @@ public class ControllerScript : MonoBehaviour
                 if (!overlay.gameObject.activeSelf)
                 {
                     toggleCursor();
-                    overlay.gameObject.SetActive(true);
-                    overlay.transform.position = new Vector3(HMD.gameObject.transform.position.x, 1.5f, HMD.gameObject.transform.position.z) + (new Vector3(HMD.transform.forward.x, 0f, HMD.transform.forward.z) * 3f);
-                    overlay.transform.rotation = Quaternion.Euler(0f, HMD.transform.eulerAngles.y, 0f);
+                    spawnOverlay(overlay);
                     //RenderSettings.skybox = skyboxMat;
                     hasOverlay = true;
 
@@ -107,6 +106,8 @@ public class ControllerScript : MonoBehaviour
                     processes[i].Kill();
                 }
                 Process reviveLauncherProc = Process.Start("C:/Users/Infinite VR Prime/Documents/REVIVE/revivelauncher.exe");
+                spawnOverlay(loadingSceen);
+                StartCoroutine(disableLoading());
 
             }
             else if (inNo)
@@ -177,5 +178,18 @@ public class ControllerScript : MonoBehaviour
             otherController.GetComponent<ControllerScript>().cursor.GetComponent<Image>().enabled = !otherController.GetComponent<ControllerScript>().cursor.GetComponent<Image>().enabled;
             otherController.GetComponent<ControllerScript>().enabled = !otherController.GetComponent<ControllerScript>().enabled;
         }
+    }
+
+    public void spawnOverlay(Overlay overlay)
+    {
+        overlay.gameObject.SetActive(true);
+        overlay.transform.position = new Vector3(HMD.gameObject.transform.position.x, 1.5f, HMD.gameObject.transform.position.z) + (new Vector3(HMD.transform.forward.x, 0f, HMD.transform.forward.z) * 3f);
+        overlay.transform.rotation = Quaternion.Euler(0f, HMD.transform.eulerAngles.y, 0f);
+    }
+
+    IEnumerator disableLoading()
+    {
+        yield return new WaitForSeconds(3);
+        loadingSceen.gameObject.SetActive(false);
     }
 }
