@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine.UI;
 using System.Diagnostics;
+using System.IO;
+using System;
 
 public class ControllerScript : MonoBehaviour
 {
@@ -23,9 +25,10 @@ public class ControllerScript : MonoBehaviour
     Color normalColor;
     Color highlightedColor;
     Color pressedColor;
-    bool hasOverlay = false;
+    bool hasOverlay;
     bool inYes;
     bool inNo;
+    bool hasPressedYes;
     float canvasWidth;
     float canvasHeight;
     Vector3 yesButtonPos;
@@ -34,6 +37,9 @@ public class ControllerScript : MonoBehaviour
     Rect noButtonRect;
     float x;
     float y;
+    float timer;
+    string buildPath;
+    string launcherPath;
 
     void Awake()
     {
@@ -44,6 +50,9 @@ public class ControllerScript : MonoBehaviour
     {
         instantiateCursor();
 
+        hasOverlay = false;
+        hasPressedYes = false;
+
         normalColor = new Color32(45, 77, 170, 255);
         highlightedColor = new Color32(135, 166, 255, 255);
         pressedColor = new Color32(0, 255, 2, 255);
@@ -52,6 +61,7 @@ public class ControllerScript : MonoBehaviour
         yesButton = GameObject.FindGameObjectWithTag("Yes");
         noButton = GameObject.FindGameObjectWithTag("No");
         overlay.gameObject.SetActive(false);
+        loadingSceen.gameObject.SetActive(false);
         canvasWidth = canvas.GetComponent<RectTransform>().rect.width;
         canvasHeight = canvas.GetComponent<RectTransform>().rect.height;
         yesButtonPos = yesButton.transform.localPosition;
@@ -61,11 +71,15 @@ public class ControllerScript : MonoBehaviour
         inYes = false;
         inNo = false;
 
+        buildPath = Environment.CurrentDirectory;
+        launcherPath = Path.Combine(buildPath, "revivelauncher.exe");
+        launcherPath = launcherPath.Replace("\\", "/");
 
     }
 
     void Update()
     {
+        timer += Time.deltaTime;
         device = SteamVR_Controller.Input((int)trackedObj.index);
         if (device.GetPressUp(SteamVR_Controller.ButtonMask.System))
         {
@@ -96,6 +110,7 @@ public class ControllerScript : MonoBehaviour
                 toggleCursor();
                 yesButton.GetComponent<Button>().image.color = Color.green;
                 UnityEngine.Debug.Log("pressed yes");
+                hasPressedYes = true;
                 overlay.gameObject.SetActive(false);
 
 
@@ -105,10 +120,10 @@ public class ControllerScript : MonoBehaviour
                     UnityEngine.Debug.Log("nag sulod dri \n");
                     processes[i].Kill();
                 }
-                Process reviveLauncherProc = Process.Start("C:/Users/Infinite VR Prime/Documents/REVIVE/revivelauncher.exe");
+                Process.Start(launcherPath);
                 spawnOverlay(loadingSceen);
-                StartCoroutine(disableLoading());
-
+                timer = 0;
+                //StartCoroutine(disableLoading());
             }
             else if (inNo)
             {
@@ -117,6 +132,10 @@ public class ControllerScript : MonoBehaviour
                 UnityEngine.Debug.Log("pressed no");
                 overlay.gameObject.SetActive(false);
             }
+        }
+        if (hasPressedYes && timer >= 3.0f)
+        {
+            loadingSceen.gameObject.SetActive(false);
         }
         if (hasOverlay)
         {
@@ -190,6 +209,7 @@ public class ControllerScript : MonoBehaviour
     IEnumerator disableLoading()
     {
         yield return new WaitForSeconds(3);
+
         loadingSceen.gameObject.SetActive(false);
     }
 }
